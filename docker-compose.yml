@@ -1,0 +1,112 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: laravel-app
+        restart: unless-stopped
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        environment:
+            - DB_CONNECTION=pgsql
+            - DB_HOST=database
+            - DB_PORT=5432
+            - DB_DATABASE=api_currencies
+            - DB_USERNAME=laravel
+            - DB_PASSWORD=secret
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - REDIS_PASSWORD=null
+            - REDIS_CLIENT=phpredis
+            - CACHE_STORE=redis
+            - SESSION_DRIVER=redis
+            - CACHE_PREFIX=currency_api
+        networks:
+            - laravel
+        depends_on:
+            database:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    'php -r ''try { new PDO("pgsql:host=database;dbname=api_currencies", "laravel", "secret"); echo "OK"; } catch(Exception $e) { exit(1); }''',
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 120s
+
+    database:
+        image: postgres:16-alpine
+        container_name: postgres-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: api_currencies
+            POSTGRES_USER: laravel
+            POSTGRES_PASSWORD: secret
+            POSTGRES_ROOT_PASSWORD: secret
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        ports:
+            - "5433:5432"
+        networks:
+            - laravel
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U laravel -d api_currencies"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+
+    redis:
+        image: redis:7-alpine
+        container_name: redis-cache
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            - laravel
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+        sysctls:
+            - net.core.somaxconn=1024
+
+    nginx:
+        image: nginx:alpine
+        container_name: nginx-server
+        restart: unless-stopped
+        ports:
+            - "80:80"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+        networks:
+            - laravel
+        depends_on:
+            app:
+                condition: service_healthy
+        healthcheck:
+            test:
+                ["CMD-SHELL", "wget -q --spider http://localhost:80 || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 5
+            start_period: 90s
+
+volumes:
+    postgres_data:
+    redis_data:
+
+networks:
+    laravel:
+        driver: bridge
