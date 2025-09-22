@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCases;
+namespace App\Application\Actions;
 
 use App\Application\DTOs\AuthenticatedUserResponse;
 use App\Application\DTOs\LoginUserRequest;
@@ -10,9 +10,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use InvalidArgumentException;
 
-class LoginUserUseCase
+class LoginUserAction
 {
-    public function execute(LoginUserRequest $request): AuthenticatedUserResponse
+    public function __invoke(LoginUserRequest $request): AuthenticatedUserResponse
     {
         $user = User::where('email', $request->email)->first();
 

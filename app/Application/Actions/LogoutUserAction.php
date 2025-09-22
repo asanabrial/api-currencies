@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCases;
+namespace App\Application\Actions;
 
-class LogoutUserUseCase
+class LogoutUserAction
 {
-    public function execute(): void
+    public function __invoke(): void
     {
         $user = auth()->user();
         

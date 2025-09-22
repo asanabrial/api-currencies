@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Actions\ConvertCurrencyAction;
-use App\Actions\GetSupportedCurrenciesAction;
-use App\Actions\LoginUserAction;
-use App\Actions\LogoutUserAction;
-use App\Actions\RegisterUserAction;
-use App\Application\UseCases\ConvertCurrencyUseCase;
-use App\Application\UseCases\GetSupportedCurrenciesUseCase;
-use App\Application\UseCases\LoginUserUseCase;
-use App\Application\UseCases\LogoutUserUseCase;
-use App\Application\UseCases\RegisterUserUseCase;
+use App\Application\Actions\ConvertCurrencyAction;
+use App\Application\Actions\GetSupportedCurrenciesAction;
+use App\Application\Actions\LoginUserAction;
+use App\Application\Actions\LogoutUserAction;
+use App\Application\Actions\RegisterUserAction;
 use App\Domain\Ports\ExchangeRateRepository;
 use App\Domain\Services\CurrencyConverterService;
 use App\Infrastructure\Adapters\ExternalApiExchangeRateRepository;
@@ -37,53 +32,22 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->bind(ConvertCurrencyUseCase::class, function ($app) {
-            return new ConvertCurrencyUseCase(
-                $app->make(CurrencyConverterService::class)
-            );
-        });
-
-        $this->app->bind(GetSupportedCurrenciesUseCase::class, function ($app) {
-            return new GetSupportedCurrenciesUseCase(
-                $app->make(CurrencyConverterService::class)
-            );
-        });
-
+        // Application Actions
         $this->app->bind(ConvertCurrencyAction::class, function ($app) {
             return new ConvertCurrencyAction(
-                $app->make(ConvertCurrencyUseCase::class)
+                $app->make(CurrencyConverterService::class)
             );
         });
 
         $this->app->bind(GetSupportedCurrenciesAction::class, function ($app) {
             return new GetSupportedCurrenciesAction(
-                $app->make(GetSupportedCurrenciesUseCase::class)
+                $app->make(CurrencyConverterService::class)
             );
         });
 
-        // Authentication UseCases
-        $this->app->bind(RegisterUserUseCase::class);
-        $this->app->bind(LoginUserUseCase::class);
-        $this->app->bind(LogoutUserUseCase::class);
-
-        // Authentication Actions
-        $this->app->bind(RegisterUserAction::class, function ($app) {
-            return new RegisterUserAction(
-                $app->make(RegisterUserUseCase::class)
-            );
-        });
-
-        $this->app->bind(LoginUserAction::class, function ($app) {
-            return new LoginUserAction(
-                $app->make(LoginUserUseCase::class)
-            );
-        });
-
-        $this->app->bind(LogoutUserAction::class, function ($app) {
-            return new LogoutUserAction(
-                $app->make(LogoutUserUseCase::class)
-            );
-        });
+        $this->app->bind(RegisterUserAction::class);
+        $this->app->bind(LoginUserAction::class);
+        $this->app->bind(LogoutUserAction::class);
     }
 
     public function boot(): void

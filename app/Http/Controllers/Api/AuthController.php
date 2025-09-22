@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\LoginUserAction;
-use App\Actions\LogoutUserAction;
-use App\Actions\RegisterUserAction;
+use App\Application\Actions\LoginUserAction;
+use App\Application\Actions\LogoutUserAction;
+use App\Application\Actions\RegisterUserAction;
+use App\Application\DTOs\LoginUserRequest;
+use App\Application\DTOs\RegisterUserRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -67,7 +69,8 @@ class AuthController extends Controller
         }
 
         try {
-            $result = $this->registerUserAction->execute($validator->validated());
+            $registerUserRequest = RegisterUserRequest::fromArray($validator->validated());
+            $result = ($this->registerUserAction)($registerUserRequest);
 
             return response()->json($result->toArray(), 201);
         } catch (InvalidArgumentException $e) {
@@ -119,7 +122,8 @@ class AuthController extends Controller
         }
 
         try {
-            $result = $this->loginUserAction->execute($validator->validated());
+            $loginUserRequest = LoginUserRequest::fromArray($validator->validated());
+            $result = ($this->loginUserAction)($loginUserRequest);
 
             return response()->json($result->toArray());
         } catch (InvalidArgumentException $e) {
@@ -149,7 +153,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $this->logoutUserAction->execute();
+        ($this->logoutUserAction)();
 
         return response()->json(['message' => 'Logged out successfully']);
     }

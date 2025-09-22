@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
-use App\Actions\ConvertCurrencyAction;
-use App\Actions\GetSupportedCurrenciesAction;
+use App\Application\Actions\ConvertCurrencyAction;
+use App\Application\Actions\GetSupportedCurrenciesAction;
+use App\Application\DTOs\ConvertCurrencyRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CurrencyConversionRequest;
 use Illuminate\Http\JsonResponse;
@@ -75,7 +76,8 @@ class CurrencyController extends Controller
     public function convert(CurrencyConversionRequest $request): JsonResponse
     {
         try {
-            $result = $this->convertCurrencyAction->execute($request->validated());
+            $convertCurrencyRequest = ConvertCurrencyRequest::fromArray($request->validated());
+            $result = ($this->convertCurrencyAction)($convertCurrencyRequest);
 
             return response()->json($result->toArray());
 
@@ -110,7 +112,7 @@ class CurrencyController extends Controller
     public function currencies(): JsonResponse
     {
         try {
-            $currencies = $this->getSupportedCurrenciesAction->execute();
+            $currencies = ($this->getSupportedCurrenciesAction)();
 
             return response()->json([
                 'currencies' => $currencies,

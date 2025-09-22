@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCases;
+namespace App\Application\Actions;
 
 use App\Application\DTOs\ConvertCurrencyRequest;
 use App\Application\DTOs\ConvertCurrencyResponse;
@@ -10,14 +10,14 @@ use App\Domain\Services\CurrencyConverterService;
 use App\Domain\ValueObjects\Amount;
 use App\Domain\ValueObjects\CurrencyCode;
 
-class ConvertCurrencyUseCase
+class ConvertCurrencyAction
 {
     public function __construct(
         private readonly CurrencyConverterService $currencyConverterService
     ) {
     }
 
-    public function execute(ConvertCurrencyRequest $request): ConvertCurrencyResponse
+    public function __invoke(ConvertCurrencyRequest $request): ConvertCurrencyResponse
     {
         $from = new CurrencyCode($request->from);
         $to = new CurrencyCode($request->to);

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Application\UseCases;
+namespace App\Application\Actions;
 
 use App\Domain\Services\CurrencyConverterService;
 
-class GetSupportedCurrenciesUseCase
+class GetSupportedCurrenciesAction
 {
     public function __construct(
         private readonly CurrencyConverterService $currencyConverterService
     ) {
     }
 
-    public function execute(): array
+    public function __invoke(): array
     {
         return $this->currencyConverterService->getSupportedCurrencies();
     }
